@@ -10,6 +10,8 @@ type Peer interface {
 // that can be used to communicate between nodes.
 // this can be the form of TCP, UDP, WebSocket, etc.
 type Transport interface {
+	// ListenAndAccept will start listening on the transport
 	ListenAndAccept() error
-  Consume() <-chan RPC
+	// Consume return a read-only channel for reading incoming messages.
+	Consume() <-chan RPC
 }

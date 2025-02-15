@@ -6,6 +6,8 @@ import "net"
 // is being sent over each transport
 // between two nodes.
 type RPC struct {
-	From    net.Addr
+	// From is the address of the sender.
+	From net.Addr
+	// Payload is the data being sent.
 	Payload []byte
 }
