@@ -49,9 +49,9 @@ type TCPTransport struct {
 }
 
 // NewTCPTransport create a new TCPTransport instance.
-func NewTCPTransport(config TCPTransportConfig) *TCPTransport {
+func NewTCPTransport(cfg TCPTransportConfig) *TCPTransport {
 	return &TCPTransport{
-		TCPTransportConfig: config,
+		TCPTransportConfig: cfg,
 		rpcch:              make(chan RPC),
 	}
 }

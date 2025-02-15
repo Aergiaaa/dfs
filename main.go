@@ -14,13 +14,13 @@ func OnPeer(p p2p.Peer) error {
 }
 
 func main() {
-	tcpConfig := p2p.TCPTransportConfig{
+	cfg := p2p.TCPTransportConfig{
 		ListenAddr:    ":3000",
 		HandshakeFunc: p2p.NOPHandshakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
 		OnPeer:        OnPeer,
 	}
-	tr := p2p.NewTCPTransport(tcpConfig)
+	tr := p2p.NewTCPTransport(cfg)
 
 	go func() {
 		for {
