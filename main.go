@@ -1,39 +1,37 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/Aergiaaa/dfs/p2p"
 )
 
-func OnPeer(p p2p.Peer) error {
-	// fmt.Println("doing some logic with the peer outside of the TCPtransport")
-	// p.Close()
-	return nil
-}
-
 func main() {
-	cfg := p2p.TCPTransportConfig{
+	tcpTransportCfg := p2p.TCPTransportConfig{
 		ListenAddr:    ":3000",
 		HandshakeFunc: p2p.NOPHandshakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
-		OnPeer:        OnPeer,
+		// OnPeer:        OnPeer,
+		// TODO: add OnPeer
 	}
-	tr := p2p.NewTCPTransport(cfg)
+	tcpTransport := p2p.NewTCPTransport(tcpTransportCfg)
+
+	fileServerCfg := FileServerConfig{
+		StorageRoot:       "3000_network",
+		PathTransformFunc: CASPathTransformFunc,
+		Transport:         tcpTransport,
+	}
+
+	fs := NewFileServer(fileServerCfg)
 
 	go func() {
-		for {
-			msg := <-tr.Consume()
-			fmt.Printf("Success: %+v\n", msg)
-		}
+		time.Sleep(time.Second * 2)
+		fs.Stop()
 	}()
 
-	if err := tr.ListenAndAccept(); err != nil {
+	if err := fs.Start(); err != nil {
 		log.Fatal(err)
 	}
 
-	select {
-	// block forever
-	}
 }

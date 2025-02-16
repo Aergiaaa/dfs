@@ -14,4 +14,6 @@ type Transport interface {
 	ListenAndAccept() error
 	// Consume return a read-only channel for reading incoming messages.
 	Consume() <-chan RPC
+	// Close will close the transport
+	Close() error
 }

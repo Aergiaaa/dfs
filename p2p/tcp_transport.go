@@ -1,7 +1,9 @@
 package p2p
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net"
 )
 
@@ -63,6 +65,12 @@ func (t *TCPTransport) Consume() <-chan RPC {
 	return t.rpcch
 }
 
+// Close implement the transport interface,
+// which will close the underlying listener of the transport.
+func (t *TCPTransport) Close() error {
+	return t.listener.Close()
+}
+
 // ListenAndAccept implement the transport interface,
 // which will start listening for incoming connections and handle them.
 func (t *TCPTransport) ListenAndAccept() error {
@@ -73,7 +81,7 @@ func (t *TCPTransport) ListenAndAccept() error {
 		return err
 	}
 
-	fmt.Println("Listening on ", t.ListenAddr)
+	log.Printf("TCP Transport Listening on %s\n", t.ListenAddr)
 
 	// Start accepting incoming connections.
 	go t.StartAcceptLoop()
@@ -84,6 +92,10 @@ func (t *TCPTransport) ListenAndAccept() error {
 func (t *TCPTransport) StartAcceptLoop() {
 	for {
 		conn, err := t.listener.Accept()
+		if errors.Is(err, net.ErrClosed) {
+			return
+		}
+
 		if err != nil {
 			fmt.Printf("TCP Accept Error: %s\n", err)
 		}
@@ -104,7 +116,7 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 	}()
 
 	// Create a new peer instance.
-	peer := NewTCPPeer(conn, false)
+	peer := NewTCPPeer(conn, true)
 	// Perform the handshake with the peer.
 	if err = t.HandshakeFunc(peer); err != nil {
 		return
