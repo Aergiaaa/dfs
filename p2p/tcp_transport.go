@@ -73,6 +73,8 @@ func (t *TCPTransport) ListenAndAccept() error {
 		return err
 	}
 
+	fmt.Println("Listening on ", t.ListenAddr)
+
 	// Start accepting incoming connections.
 	go t.StartAcceptLoop()
 	return nil

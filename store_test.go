@@ -51,6 +51,10 @@ func TestStore(t *testing.T) {
 		t.Error(err)
 	}
 
+	if ok := s.Has(key); !ok {
+		t.Errorf("expected %s to exist", key)
+	}
+
 	r, err := s.Read(key)
 	if err != nil {
 		t.Error(err)
@@ -60,11 +64,10 @@ func TestStore(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Println(string(b))
-
 	if !bytes.Equal(b, data) {
 		t.Errorf("expected %s, got %s", string(data), string(b))
 	}
+	fmt.Println("SUCCESS READ: " + string(b))
 
 	if err = s.Delete(key); err != nil {
 		t.Error(err)
