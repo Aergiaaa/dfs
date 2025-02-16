@@ -2,36 +2,39 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/Aergiaaa/dfs/p2p"
 )
 
-func main() {
+func makeServer(listenAddr string, nodes ...string) *FileServer {
 	tcpTransportCfg := p2p.TCPTransportConfig{
-		ListenAddr:    ":3000",
+		ListenAddr:    listenAddr,
 		HandshakeFunc: p2p.NOPHandshakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
-		// OnPeer:        OnPeer,
-		// TODO: add OnPeer
 	}
 	tcpTransport := p2p.NewTCPTransport(tcpTransportCfg)
 
 	fileServerCfg := FileServerConfig{
-		StorageRoot:       "3000_network",
+		StorageRoot:       listenAddr + "_network",
 		PathTransformFunc: CASPathTransformFunc,
 		Transport:         tcpTransport,
+		BootstrapNodes:    nodes,
 	}
 
 	fs := NewFileServer(fileServerCfg)
+	tcpTransport.OnPeer = fs.OnPeer
 
+	return fs
+}
+
+func main() {
+	fs1 := makeServer(":3000", "")
+	fs2 := makeServer(":4000", ":3000")
 	go func() {
-		time.Sleep(time.Second * 2)
-		fs.Stop()
+		log.Fatal(fs1.Start())
 	}()
 
-	if err := fs.Start(); err != nil {
+	if err := fs2.Start(); err != nil {
 		log.Fatal(err)
 	}
-
 }

@@ -23,6 +23,17 @@ func NewTCPPeer(conn net.Conn, outbound bool) *TCPPeer {
 	}
 }
 
+func (p *TCPPeer) Send(b []byte) error {
+	_, err := p.conn.Write(b)
+	return err
+}
+
+// RemoteAddr implement the Peer interface,
+// which will return the remote address of the peer.
+func (p *TCPPeer) RemoteAddr() net.Addr {
+	return p.conn.RemoteAddr()
+}
+
 // Close implement the Peer interface,
 // which will close the underlying connection of the peer.
 func (p *TCPPeer) Close() error {
@@ -71,6 +82,18 @@ func (t *TCPTransport) Close() error {
 	return t.listener.Close()
 }
 
+// Dial implement the transport interface,
+// which will dial to the remote address.
+func (t *TCPTransport) Dial(addr string) error {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	go t.handleConn(conn, true)
+	return nil
+}
+
 // ListenAndAccept implement the transport interface,
 // which will start listening for incoming connections and handle them.
 func (t *TCPTransport) ListenAndAccept() error {
@@ -100,15 +123,13 @@ func (t *TCPTransport) StartAcceptLoop() {
 			fmt.Printf("TCP Accept Error: %s\n", err)
 		}
 
-		fmt.Printf("coming new connection %+v\n", conn)
-
 		// Handle the new connection in a new goroutine.
-		go t.handleConn(conn)
+		go t.handleConn(conn, false)
 	}
 }
 
 // handleConn will handle the incoming connection.
-func (t *TCPTransport) handleConn(conn net.Conn) {
+func (t *TCPTransport) handleConn(conn net.Conn, outbound bool) {
 	var err error
 	defer func() {
 		fmt.Printf("dropping peer connection: %s\n", err)
@@ -116,7 +137,7 @@ func (t *TCPTransport) handleConn(conn net.Conn) {
 	}()
 
 	// Create a new peer instance.
-	peer := NewTCPPeer(conn, true)
+	peer := NewTCPPeer(conn, outbound)
 	// Perform the handshake with the peer.
 	if err = t.HandshakeFunc(peer); err != nil {
 		return
